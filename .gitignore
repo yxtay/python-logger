@@ -1,0 +1,9 @@
+# python
+__pychache__/
+*.pyc
+
+# project
+log
+
+# ide
+.idea/
