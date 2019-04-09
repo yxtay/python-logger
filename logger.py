@@ -1,9 +1,10 @@
 import logging
-from logging.handlers import RotatingFileHandler
 import os
+import sys
+from logging.handlers import RotatingFileHandler
 
 
-def get_logger(name, log_path=os.path.join(os.path.dirname(__file__), "main.log"), console=False):
+def get_logger(name, log_path="main.log", console=True):
     """
     Simple logging wrapper that returns logger
     configured to log into file and console.
@@ -14,11 +15,12 @@ def get_logger(name, log_path=os.path.join(os.path.dirname(__file__), "main.log"
         console (bool): whether to log on console
 
     Returns:
-        logging.Logger: configured logger
+        logger (logging.Logger): configured logger
     """
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    format = "%(asctime)s - %(levelname)s - %(name)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s"
+    formatter = logging.Formatter(format)
 
     # ensure that logging handlers are not duplicated
     for handler in list(logger.handlers):
@@ -35,7 +37,7 @@ def get_logger(name, log_path=os.path.join(os.path.dirname(__file__), "main.log"
 
     # console handler
     if console:
-        ch = logging.StreamHandler()
+        ch = logging.StreamHandler(sys.stdout)
         ch.setLevel(logging.INFO)
         ch.setFormatter(formatter)
         logger.addHandler(ch)
@@ -48,6 +50,7 @@ def get_logger(name, log_path=os.path.join(os.path.dirname(__file__), "main.log"
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Simple script to run `get_logger()`.")
     parser.add_argument("--log-path", default="main.log",
                         help="path of log file")

@@ -3,7 +3,7 @@ __pychache__/
 *.pyc
 
 # project
-log
+*.log
 
 # ide
 .idea/
