@@ -19,8 +19,8 @@ def get_logger(name, log_path="main.log", console=True):
     """
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
-    format = "%(asctime)s - %(levelname)s - %(name)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s"
-    formatter = logging.Formatter(format)
+    fmt = "%(asctime)s - %(levelname)s - %(name)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s"
+    formatter = logging.Formatter(fmt)
 
     # ensure that logging handlers are not duplicated
     for handler in list(logger.handlers):
