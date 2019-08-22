@@ -3,6 +3,8 @@ import os
 import sys
 from logging.handlers import RotatingFileHandler
 
+from pythonjsonlogger import jsonlogger
+
 
 def get_logger(name, log_path="main.log", console=True):
     """
@@ -19,8 +21,8 @@ def get_logger(name, log_path="main.log", console=True):
     """
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
-    fmt = "%(asctime)s - %(levelname)s - %(name)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s"
-    formatter = logging.Formatter(fmt)
+    format = "%(asctime)s - %(levelname)s - %(name)s - %(filename)s - %(lineno)d - %(funcName)s - %(message)s"
+    formatter = jsonlogger.JsonFormatter(format)
 
     # ensure that logging handlers are not duplicated
     for handler in list(logger.handlers):
@@ -44,12 +46,6 @@ def get_logger(name, log_path="main.log", console=True):
         stdout_handler.setLevel(logging.INFO)
         stdout_handler.setFormatter(formatter)
         logger.addHandler(stdout_handler)
-
-        # stderr
-        stderr_handler = logging.StreamHandler()
-        stderr_handler.setLevel(logging.ERROR)
-        stderr_handler.setFormatter(formatter)
-        logger.addHandler(stderr_handler)
 
     if len(logger.handlers) == 0:
         logger.addHandler(logging.NullHandler())
