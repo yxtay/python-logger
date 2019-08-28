@@ -1,9 +1,19 @@
+import argparse
 import logging
 import os
 import sys
 from logging.handlers import RotatingFileHandler
 
 from pythonjsonlogger import jsonlogger
+
+# formatter
+log_format = "%(asctime)s - %(levelname)s - %(name)s - %(filename)s - %(lineno)d - %(funcName)s - %(message)s"
+formatter = jsonlogger.JsonFormatter(log_format)
+
+# stdout
+stdout_handler = logging.StreamHandler(sys.stdout)
+stdout_handler.setLevel(logging.INFO)
+stdout_handler.setFormatter(formatter)
 
 
 def get_logger(name, log_path="main.log", console=True):
@@ -21,11 +31,9 @@ def get_logger(name, log_path="main.log", console=True):
     """
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
-    format = "%(asctime)s - %(levelname)s - %(name)s - %(filename)s - %(lineno)d - %(funcName)s - %(message)s"
-    formatter = jsonlogger.JsonFormatter(format)
 
     # ensure that logging handlers are not duplicated
-    for handler in list(logger.handlers):
+    for handler in logger.handlers[:]:
         logger.removeHandler(handler)
 
     # rotating file handler
@@ -33,7 +41,7 @@ def get_logger(name, log_path="main.log", console=True):
         file_handler = RotatingFileHandler(
             log_path,
             maxBytes=10 * 2 ** 20,  # 10 MB
-            backupCount=10,  # 1 backup
+            backupCount=1,  # 1 backup
         )
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
@@ -41,21 +49,15 @@ def get_logger(name, log_path="main.log", console=True):
 
     # console handler
     if console:
-        # stdout
-        stdout_handler = logging.StreamHandler(sys.stdout)
-        stdout_handler.setLevel(logging.INFO)
-        stdout_handler.setFormatter(formatter)
         logger.addHandler(stdout_handler)
 
-    if len(logger.handlers) == 0:
+    if not logger.hasHandlers():
         logger.addHandler(logging.NullHandler())
 
     return logger
 
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser(description="Simple script to run `get_logger()`.")
     parser.add_argument(
         "--log-path",
