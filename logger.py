@@ -8,7 +8,7 @@ from pythonjsonlogger import jsonlogger
 
 # formatter
 log_format = "%(asctime)s - %(levelname)s - %(name)s - %(filename)s - %(lineno)d - %(funcName)s - %(message)s"
-formatter = jsonlogger.JsonFormatter(log_format)
+formatter = jsonlogger.JsonFormatter(fmt=log_format, timestamp=True)
 
 # stdout
 stdout_handler = logging.StreamHandler(sys.stdout)
