@@ -7,6 +7,9 @@ from logging.handlers import RotatingFileHandler, QueueHandler, QueueListener
 
 from pythonjsonlogger import jsonlogger
 
+# init root logger with null handler
+logging.basicConfig(handlers=[logging.NullHandler()])
+
 # formatter
 log_format = "%(asctime)s - %(levelname)s - %(name)s - %(filename)s - %(lineno)d - %(funcName)s - %(message)s"
 log_formatter = jsonlogger.JsonFormatter(fmt=log_format, timestamp=True)
