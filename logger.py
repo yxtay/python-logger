@@ -21,25 +21,29 @@ stdout_handler.setFormatter(log_formatter)
 
 # init log_queue and listener
 log_queue = queue.Queue()
-log_queue_handler = QueueHandler(log_queue)
-log_listener = QueueListener(log_queue, respect_handler_level=True)
-log_listener.start()
+log_qhandler = QueueHandler(log_queue)
+log_qlistener = QueueListener(log_queue, respect_handler_level=True)
+log_qlistener.start()
 
 
-def configure_handlers(log_path="main.log", console=True):
+def configure_handlers(console=True, log_path="main.log"):
     """
     Configure log queue listener to log into file and console.
 
     Args:
-        log_path (str): path of log file
         console (bool): whether to log on console
+        log_path (str): path of log file
 
     Returns:
         logger (logging.Logger): configured logger
     """
-    global log_listener
-    log_listener.stop()
+    global log_qlistener
+    log_qlistener.stop()
     log_handlers = []
+
+    # console handler
+    if console:
+        log_handlers.append(stdout_handler)
 
     # rotating file handler
     if log_path:
@@ -52,13 +56,9 @@ def configure_handlers(log_path="main.log", console=True):
         file_handler.setFormatter(log_formatter)
         log_handlers.append(file_handler)
 
-    # console handler
-    if console:
-        log_handlers.append(stdout_handler)
-
-    log_listener = QueueListener(log_queue, *log_handlers, respect_handler_level=True)
-    log_listener.start()
-    return log_listener
+    log_qlistener = QueueListener(log_queue, *log_handlers, respect_handler_level=True)
+    log_qlistener.start()
+    return log_qlistener
 
 
 def get_logger(name="root"):
@@ -77,7 +77,7 @@ def get_logger(name="root"):
         logger.removeHandler(log_handler)
 
     logger.setLevel(logging.DEBUG)
-    logger.addHandler(log_queue_handler)
+    logger.addHandler(log_qhandler)
 
     return logger
 
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     if args.reset and os.path.exists(args.log_path):
         os.remove(args.log_path)
 
-    configure_handlers(args.log_path, True)
+    configure_handlers(True, args.log_path)
     logger = get_logger(args.logger_name)
     logger.debug("This is a debug message.")
     logger.info("This is an info message.")
@@ -119,11 +119,11 @@ if __name__ == "__main__":
     logger = get_logger(args.logger_name)
     logger.info("This message should appear just once.")
 
-    configure_handlers("", True)
+    configure_handlers(True, "")
     logger.info("This message should appear in the console only.")
 
-    configure_handlers(args.log_path, False)
+    configure_handlers(False, args.log_path)
     logger.info("This message should appear in the log file only.")
 
-    configure_handlers("", False)
+    configure_handlers(False, "")
     logger.info("This message should not appear.")
