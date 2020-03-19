@@ -3,7 +3,7 @@ import logging
 import os
 import queue
 import sys
-from logging.handlers import RotatingFileHandler, QueueHandler, QueueListener
+from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
 
 from pythonjsonlogger import jsonlogger
 
@@ -14,7 +14,7 @@ logging.basicConfig(handlers=[logging.NullHandler()])
 log_queue = queue.Queue()
 
 
-class StackdriverJsonFormatter(jsonlogger.JsonFormatter, object):
+class StackdriverFormatter(jsonlogger.JsonFormatter, object):
     def process_log_record(self, log_record):
         log_record["severity"] = log_record["levelname"]
         return super().process_log_record(log_record)
@@ -26,7 +26,7 @@ def __get_log_formatter():
         "%(asctime)s - %(levelname)s - %(name)s - %(filename)s - "
         "%(lineno)d - %(funcName)s - %(message)s"
     )
-    log_formatter = StackdriverJsonFormatter(fmt=log_format, timestamp=True)
+    log_formatter = StackdriverFormatter(fmt=log_format, timestamp=True)
     return log_formatter
 
 
