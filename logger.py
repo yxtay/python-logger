@@ -10,7 +10,7 @@ from pythonjsonlogger import jsonlogger
 # init root logger with null handler
 logging.basicConfig(handlers=[logging.NullHandler()])
 
-# init listener
+# init log queue for handler and listener
 log_queue = queue.Queue()
 
 
@@ -20,17 +20,26 @@ class StackdriverFormatter(jsonlogger.JsonFormatter, object):
         return super().process_log_record(log_record)
 
 
-def __get_log_formatter():
+def __get_log_formatter() -> StackdriverFormatter:
     # formatter
-    log_format = (
-        "%(asctime)s - %(levelname)s - %(name)s - %(filename)s - "
-        "%(lineno)d - %(funcName)s - %(message)s"
-    )
-    log_formatter = StackdriverFormatter(fmt=log_format, timestamp=True)
+    log_format = " - ".join([
+        "%(asctime)s",
+        "%(levelname)s",
+        "%(name)s",
+        "%(processName)s",
+        "%(threadName)s",
+        "%(filename)s",
+        "%(module)s",
+        "%(lineno)d",
+        "%(funcName)s",
+        "%(message)s",
+    ])
+    date_format = "%Y-%m-%dT%H:%M:%S"
+    log_formatter = StackdriverFormatter(fmt=log_format, datefmt=date_format)
     return log_formatter
 
 
-def __get_file_handler(log_path):
+def __get_file_handler(log_path: str = "main.log") -> RotatingFileHandler:
     file_handler = RotatingFileHandler(
         log_path, maxBytes=10 * 2 ** 20, backupCount=1  # 10 MB  # 1 backup
     )
@@ -39,14 +48,14 @@ def __get_file_handler(log_path):
     return file_handler
 
 
-def __get_stdout_handler():
+def __get_stdout_handler() -> logging.StreamHandler:
     stdout_handler = logging.StreamHandler(sys.stdout)
     stdout_handler.setLevel(logging.INFO)
     stdout_handler.setFormatter(__get_log_formatter())
     return stdout_handler
 
 
-def configure_handlers(console=True, log_path="main.log"):
+def configure_handlers(console: bool = True, log_path: str = "main.log") -> QueueListener:
     """
     Configure log queue listener to log into file and console.
 
@@ -80,7 +89,7 @@ def configure_handlers(console=True, log_path="main.log"):
     return log_qlistener
 
 
-def get_logger(name):
+def get_logger(name: str = __name__) -> logging.Logger:
     """
     Simple logging wrapper that returns logger
     configured to log into file and console.
