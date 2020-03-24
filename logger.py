@@ -55,7 +55,7 @@ def __get_stdout_handler() -> logging.StreamHandler:
     return stdout_handler
 
 
-def configure_handlers(console: bool = True, log_path: str = "main.log") -> QueueListener:
+def configure_log_handlers(console: bool = True, log_path: str = "main.log") -> QueueListener:
     """
     Configure log queue listener to log into file and console.
 
@@ -64,7 +64,7 @@ def configure_handlers(console: bool = True, log_path: str = "main.log") -> Queu
         log_path (str): path of log file
 
     Returns:
-        logger (logging.Logger): configured logger
+        log_qlistener (logging.handlers.QueueListener): configured log queue listener
     """
     global log_qlistener
     try:
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     if args.reset and os.path.exists(args.log_path):
         os.remove(args.log_path)
 
-    configure_handlers(True, args.log_path)
+    configure_log_handlers(True, args.log_path)
     logger = get_logger(args.logger_name)
     logger.debug("This is a debug message.")
     logger.info("This is an info message.")
@@ -147,11 +147,11 @@ if __name__ == "__main__":
     logger = get_logger(args.logger_name)
     logger.info("This message should appear just once.")
 
-    configure_handlers(True, "")
+    configure_log_handlers(True, "")
     logger.info("This message should appear in the console only.")
 
-    configure_handlers(False, args.log_path)
+    configure_log_handlers(False, args.log_path)
     logger.info("This message should appear in the log file only.")
 
-    configure_handlers(False, "")
+    configure_log_handlers(False, "")
     logger.info("This message should not appear.")
