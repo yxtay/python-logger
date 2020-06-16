@@ -1,21 +1,22 @@
-import argparse
 import logging
-import os
 import queue
 import sys
 from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
+from typing import Any, Dict, List
 
-from pythonjsonlogger import jsonlogger
+from pythonjsonlogger import jsonlogger  # type: ignore
 
 # init root logger with null handler
 logging.basicConfig(handlers=[logging.NullHandler()])
 
 # init log queue for handler and listener
-log_queue = queue.Queue()
+log_queue: queue.Queue = queue.Queue()
+log_qlistener: QueueListener = QueueListener(log_queue)
+log_qlistener.start()
 
 
-class StackdriverFormatter(jsonlogger.JsonFormatter, object):
-    def process_log_record(self, log_record):
+class StackdriverFormatter(jsonlogger.JsonFormatter):
+    def process_log_record(self, log_record: Dict[str, Any]) -> Dict[str, Any]:
         log_record["severity"] = log_record["levelname"]
         return super().process_log_record(log_record)
 
@@ -41,7 +42,9 @@ def __get_log_formatter() -> StackdriverFormatter:
 
 def __get_file_handler(log_path: str = "main.log") -> RotatingFileHandler:
     file_handler = RotatingFileHandler(
-        log_path, maxBytes=10 * 2 ** 20, backupCount=1  # 10 MB  # 1 backup
+        log_path,
+        maxBytes=10 * 2 ** 20,  # 10 MB
+        backupCount=1,  # 1 backup
     )
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(__get_log_formatter())
@@ -55,14 +58,13 @@ def __get_stdout_handler() -> logging.StreamHandler:
     return stdout_handler
 
 
-def configure_log_handlers(console: bool = True, log_path: str = "main.log") -> QueueListener:
+def configure_log_handlers(console: bool = True,
+                           log_path: str = "main.log") -> QueueListener:
     """
     Configure log queue listener to log into file and console.
-
     Args:
         console (bool): whether to log on console
         log_path (str): path of log file
-
     Returns:
         log_qlistener (logging.handlers.QueueListener): configured log queue listener
     """
@@ -72,7 +74,7 @@ def configure_log_handlers(console: bool = True, log_path: str = "main.log") -> 
     except (AttributeError, NameError):
         pass
 
-    handlers = []
+    handlers: List[logging.Handler] = []
 
     # rotating file handler
     if log_path:
@@ -89,14 +91,12 @@ def configure_log_handlers(console: bool = True, log_path: str = "main.log") -> 
     return log_qlistener
 
 
-def get_logger(name: str = __name__) -> logging.Logger:
+def get_logger(name: str) -> logging.Logger:
     """
     Simple logging wrapper that returns logger
     configured to log into file and console.
-
     Args:
         name (str): name of logger
-
     Returns:
         logger (logging.Logger): configured logger
     """
@@ -111,7 +111,10 @@ def get_logger(name: str = __name__) -> logging.Logger:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Simple script to run `get_logger()`.")
+    import os
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser(description="Simple script to run `get_logger()`.")
     parser.add_argument(
         "--logger-name",
         default=__name__,
