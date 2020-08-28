@@ -1,9 +1,12 @@
 import logging
+import logging.config
 import queue
 import sys
 from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
+from pathlib import Path
 from typing import Any, Dict, List
 
+import yaml
 from pythonjsonlogger import jsonlogger  # type: ignore
 
 # init root logger with null handler
@@ -89,6 +92,11 @@ def configure_log_handlers(console: bool = True,
     log_qlistener = QueueListener(log_queue, *handlers, respect_handler_level=True)
     log_qlistener.start()
     return log_qlistener
+
+
+def configure_loggers(yaml_path: str = "logging.yml") -> None:
+    log_conf = yaml.safe_load(Path(yaml_path).read_text())
+    logging.config.dictConfig(log_conf)
 
 
 def get_logger(name: str) -> logging.Logger:

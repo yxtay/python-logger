@@ -1,0 +1,63 @@
+version: 1
+disable_existing_loggers: true
+
+formatters:
+    standard: &standard
+        format: >-
+            %(asctime)s
+            %(levelname)s -
+            %(name)s -
+            %(processName)s -
+            %(threadName)s -
+            %(filename)s -
+            %(module)s -
+            %(lineno)d -
+            %(funcName)s -
+            %(message)s
+    json_formatter:
+        <<: *standard
+        class: pythonjsonlogger.jsonlogger.JsonFormatter
+
+handlers:
+    null_handler:
+        class: logging.NullHandler
+
+    console:
+        class: logging.StreamHandler
+        level: INFO
+        formatter: json_formatter
+        stream: ext://sys.stdout
+
+    info_file_handler: &defaults
+        class: logging.handlers.RotatingFileHandler
+        level: INFO
+        formatter: json_formatter
+        filename: info.log
+        maxBytes: 1048576 # 1MB
+        backupCount: 10
+        encoding: utf8
+        delay: true
+
+    error_file_handler:
+        <<: *defaults
+        level: ERROR
+        filename: errors.log
+
+    debug_file_handler:
+        <<: *defaults
+        level: DEBUG
+        filename: debug.log
+
+    warning_file_handler:
+        <<: *defaults
+        level: WARNING
+        filename: warning.log
+
+    critical_file_handler:
+        <<: *defaults
+        level: CRITICAL
+        filename: critical.log
+
+root:
+    level: DEBUG
+    handlers: [console, debug_file_handler]
