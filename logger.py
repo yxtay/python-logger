@@ -39,7 +39,7 @@ def __get_log_formatter() -> StackdriverFormatter:
         "%(message)s",
     ])
     date_format = "%Y-%m-%dT%H:%M:%S"
-    log_formatter = StackdriverFormatter(fmt=log_format, datefmt=date_format)
+    log_formatter = StackdriverFormatter(fmt=log_format, datefmt=date_format, timestamp=True)
     return log_formatter
 
 
@@ -94,9 +94,8 @@ def configure_log_handlers(console: bool = True,
     return log_qlistener
 
 
-def configure_loggers(yaml_path: str = "logging.yml") -> None:
-    log_conf = yaml.safe_load(Path(yaml_path).read_text())
-    logging.config.dictConfig(log_conf)
+def configure_loggers(ini_path: str = "logging.ini") -> None:
+    logging.config.fileConfig(ini_path)
 
 
 def get_logger(name: str) -> logging.Logger:
@@ -144,7 +143,9 @@ if __name__ == "__main__":
         os.remove(args.log_path)
 
     configure_log_handlers(True, args.log_path)
-    logger = get_logger(args.logger_name)
+    # logger = get_logger(args.logger_name)
+    configure_loggers()
+    logger = logging.getLogger(args.logger_name)
     logger.debug("This is a debug message.")
     logger.info("This is an info message.")
     logger.warning("This is a warning message.")
