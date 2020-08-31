@@ -48,6 +48,8 @@ def __get_file_handler(log_path: str = "main.log") -> RotatingFileHandler:
         log_path,
         maxBytes=10 * 2 ** 20,  # 10 MB
         backupCount=1,  # 1 backup
+        encoding="utf8",
+        delay=True,
     )
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(__get_log_formatter())
