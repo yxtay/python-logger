@@ -24,47 +24,54 @@ class StackdriverFormatter(jsonlogger.JsonFormatter):
         return super().process_log_record(log_record)
 
 
-def __get_log_formatter() -> StackdriverFormatter:
+def _get_log_formatter() -> StackdriverFormatter:
     # formatter
-    log_format = " - ".join([
-        "%(asctime)s",
-        "%(levelname)s",
-        "%(name)s",
-        "%(processName)s",
-        "%(threadName)s",
-        "%(filename)s",
-        "%(module)s",
-        "%(lineno)d",
-        "%(funcName)s",
-        "%(message)s",
-    ])
+    log_format = " - ".join(
+        [
+            "%(asctime)s",
+            "%(levelname)s",
+            "%(name)s",
+            "%(processName)s",
+            "%(threadName)s",
+            "%(filename)s",
+            "%(module)s",
+            "%(lineno)d",
+            "%(funcName)s",
+            "%(message)s",
+        ]
+    )
     date_format = "%Y-%m-%dT%H:%M:%S"
-    log_formatter = StackdriverFormatter(fmt=log_format, datefmt=date_format, timestamp=True)
+    log_formatter = StackdriverFormatter(
+        fmt=log_format, datefmt=date_format, timestamp=True
+    )
     return log_formatter
 
 
-def __get_file_handler(log_path: str = "main.log") -> RotatingFileHandler:
+def _get_file_handler(
+    log_path: str = "main.log", log_level: int = logging.DEBUG
+) -> RotatingFileHandler:
     file_handler = RotatingFileHandler(
         log_path,
-        maxBytes=10 * 2 ** 20,  # 10 MB
-        backupCount=1,  # 1 backup
+        maxBytes=2 ** 20,  # 1 MB
+        backupCount=10,  # 10 backup
         encoding="utf8",
         delay=True,
     )
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(__get_log_formatter())
+    file_handler.setLevel(log_level)
+    file_handler.setFormatter(_get_log_formatter())
     return file_handler
 
 
-def __get_stdout_handler() -> logging.StreamHandler:
+def _get_stdout_handler(log_level: int = logging.INFO) -> logging.StreamHandler:
     stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(logging.INFO)
-    stdout_handler.setFormatter(__get_log_formatter())
+    stdout_handler.setLevel(log_level)
+    stdout_handler.setFormatter(_get_log_formatter())
     return stdout_handler
 
 
-def configure_log_handlers(console: bool = True,
-                           log_path: str = "main.log") -> QueueListener:
+def configure_log_listener(
+    console: bool = True, log_path: str = "main.log"
+) -> QueueListener:
     """
     Configure log queue listener to log into file and console.
     Args:
@@ -83,12 +90,12 @@ def configure_log_handlers(console: bool = True,
 
     # rotating file handler
     if log_path:
-        file_handler = __get_file_handler(log_path)
+        file_handler = _get_file_handler(log_path)
         handlers.append(file_handler)
 
     # console handler
     if console:
-        stdout_handler = __get_stdout_handler()
+        stdout_handler = _get_stdout_handler()
         handlers.append(stdout_handler)
 
     log_qlistener = QueueListener(log_queue, *handlers, respect_handler_level=True)
@@ -97,24 +104,30 @@ def configure_log_handlers(console: bool = True,
 
 
 def configure_loggers(conf_yaml: str = "logging.yml") -> None:
+    """
+    Configure loggers with configurations defined in yaml
+    Args:
+        conf_yaml: path of yaml config file
+    """
     log_conf = yaml.safe_load(Path(conf_yaml).read_text())
     logging.config.dictConfig(log_conf)
 
 
-def get_logger(name: str) -> logging.Logger:
+def get_logger(name: str, log_level: int = logging.DEBUG) -> logging.Logger:
     """
     Simple logging wrapper that returns logger
     configured to log into file and console.
     Args:
-        name (str): name of logger
+        name: name of logger
+        log_level: log level
     Returns:
-        logger (logging.Logger): configured logger
+        logger: configured logger
     """
     logger = logging.getLogger(name)
     for log_handler in logger.handlers[:]:
         logger.removeHandler(log_handler)
 
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(log_level)
     logger.addHandler(QueueHandler(log_queue))
 
     return logger
@@ -145,7 +158,7 @@ if __name__ == "__main__":
     if args.reset and os.path.exists(args.log_path):
         os.remove(args.log_path)
 
-    configure_log_handlers(True, args.log_path)
+    configure_log_listener(True, args.log_path)
     # logger = get_logger(args.logger_name)
     configure_loggers()
     logger = logging.getLogger(args.logger_name)
@@ -162,11 +175,11 @@ if __name__ == "__main__":
     logger = get_logger(args.logger_name)
     logger.info("This message should appear just once.")
 
-    configure_log_handlers(True, "")
+    configure_log_listener(True, "")
     logger.info("This message should appear in the console only.")
 
-    configure_log_handlers(False, args.log_path)
+    configure_log_listener(False, args.log_path)
     logger.info("This message should appear in the log file only.")
 
-    configure_log_handlers(False, "")
+    configure_log_listener(False, "")
     logger.info("This message should not appear.")
