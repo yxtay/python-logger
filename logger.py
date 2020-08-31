@@ -94,9 +94,9 @@ def configure_log_handlers(console: bool = True,
     return log_qlistener
 
 
-def configure_loggers(yaml_path: str = "logging.yml") -> None:
-    log_conf = yaml.safe_load(Path(yaml_path).read_text())
-    logging.config.fileConfig(log_conf)
+def configure_loggers(conf_yaml: str = "logging.yml") -> None:
+    log_conf = yaml.safe_load(Path(conf_yaml).read_text())
+    logging.config.dictConfig(log_conf)
 
 
 def get_logger(name: str) -> logging.Logger:

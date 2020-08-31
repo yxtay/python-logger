@@ -14,12 +14,12 @@ formatters:
       %(lineno)d -
       %(funcName)s -
       %(message)s
-    datefmt: "%Y-%m-%dT%H:%M:%S"
+    # datefmt: "%Y-%m-%dT%H:%M:%S"
 
   json_formatter:
     <<: *standard
     class: pythonjsonlogger.jsonlogger.JsonFormatter
-    timestamp: true
+    timestamp: true  # doesn't work
 
 handlers:
   null_handler:
