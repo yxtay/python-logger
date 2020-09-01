@@ -1,9 +1,9 @@
 import logging
 import logging.config
-import queue
 import sys
 from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
 from pathlib import Path
+from queue import Queue
 from typing import Any, Dict, List
 
 import yaml
@@ -13,8 +13,8 @@ from pythonjsonlogger import jsonlogger  # type: ignore
 logging.basicConfig(handlers=[logging.NullHandler()])
 
 # init log queue for handler and listener
-log_queue: queue.Queue = queue.Queue()
-log_qlistener: QueueListener = QueueListener(log_queue)
+log_queue: Queue = Queue()
+log_qlistener: QueueListener = QueueListener(log_queue, respect_handler_level=True)
 log_qlistener.start()
 
 
@@ -67,6 +67,14 @@ def _get_stdout_handler(log_level: int = logging.INFO) -> logging.StreamHandler:
     stdout_handler.setLevel(log_level)
     stdout_handler.setFormatter(_get_log_formatter())
     return stdout_handler
+
+
+class QueueListenerHandler(QueueHandler):
+    def __init__(self, handlers):
+        queue = Queue()
+        super().__init__(queue)
+        self.listener = QueueListener(queue, *handlers, respect_handler_level=True)
+        self.listener.start()
 
 
 def configure_log_listener(
@@ -159,9 +167,7 @@ if __name__ == "__main__":
         os.remove(args.log_path)
 
     configure_log_listener(True, args.log_path)
-    # logger = get_logger(args.logger_name)
-    configure_loggers()
-    logger = logging.getLogger(args.logger_name)
+    logger = get_logger(args.logger_name)
     logger.debug("This is a debug message.")
     logger.info("This is an info message.")
     logger.warning("This is a warning message.")
