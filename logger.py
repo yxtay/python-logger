@@ -7,7 +7,7 @@ from queue import Queue
 from typing import Any, Dict, List
 
 import yaml
-from pythonjsonlogger import jsonlogger  # type: ignore
+from pythonjsonlogger.jsonlogger import JsonFormatter  # type: ignore
 
 # init root logger with null handler
 logging.basicConfig(handlers=[logging.NullHandler()])
@@ -18,7 +18,7 @@ log_qlistener: QueueListener = QueueListener(log_queue, respect_handler_level=Tr
 log_qlistener.start()
 
 
-class StackdriverFormatter(jsonlogger.JsonFormatter):
+class StackdriverFormatter(JsonFormatter):
     def process_log_record(self, log_record: Dict[str, Any]) -> Dict[str, Any]:
         log_record["severity"] = log_record["levelname"]
         return super().process_log_record(log_record)
@@ -146,20 +146,10 @@ if __name__ == "__main__":
     from argparse import ArgumentParser
 
     parser = ArgumentParser(description="Simple script to run `get_logger()`.")
+    parser.add_argument("--logger-name", default=__name__, help="name of logger")
+    parser.add_argument("--log-path", default="main.log", help="path of log file")
     parser.add_argument(
-        "--logger-name",
-        default=__name__,
-        help="name of logger"
-    )
-    parser.add_argument(
-        "--log-path",
-        default="main.log",
-        help="path of log file"
-    )
-    parser.add_argument(
-        "--reset",
-        action="store_true",
-        help="whether to reset log file"
+        "--reset", action="store_true", help="whether to reset log file"
     )
     args = parser.parse_args()
 
