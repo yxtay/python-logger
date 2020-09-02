@@ -5,6 +5,7 @@ from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
 from pathlib import Path
 from queue import Queue
 from typing import Any, Dict, List
+import atexit
 
 import yaml
 from pythonjsonlogger.jsonlogger import JsonFormatter  # type: ignore
@@ -16,6 +17,7 @@ logging.basicConfig(handlers=[logging.NullHandler()])
 log_queue: Queue = Queue()
 log_qlistener: QueueListener = QueueListener(log_queue, respect_handler_level=True)
 log_qlistener.start()
+atexit.register(log_qlistener.stop)
 
 
 class StackdriverFormatter(JsonFormatter):
@@ -75,6 +77,7 @@ class QueueListenerHandler(QueueHandler):
         super().__init__(queue)
         self.listener = QueueListener(queue, *handlers, respect_handler_level=True)
         self.listener.start()
+        atexit.register(self.listener.stop)
 
 
 def configure_log_listener(
@@ -90,7 +93,9 @@ def configure_log_listener(
     """
     global log_qlistener
     try:
+        atexit.unregister(log_qlistener.stop)
         log_qlistener.stop()
+        atexit.unregister(log_qlistener.stop)
     except (AttributeError, NameError):
         pass
 
@@ -108,6 +113,7 @@ def configure_log_listener(
 
     log_qlistener = QueueListener(log_queue, *handlers, respect_handler_level=True)
     log_qlistener.start()
+    atexit.register(log_qlistener.stop)
     return log_qlistener
 
 
