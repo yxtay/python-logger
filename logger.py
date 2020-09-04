@@ -1,3 +1,4 @@
+import atexit
 import logging
 import logging.config
 import sys
@@ -5,7 +6,6 @@ from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
 from pathlib import Path
 from queue import Queue
 from typing import Any, Dict, List
-import atexit
 
 import yaml
 from pythonjsonlogger.jsonlogger import JsonFormatter  # type: ignore
@@ -73,11 +73,14 @@ def _get_stdout_handler(log_level: int = logging.INFO) -> logging.StreamHandler:
 
 class QueueListenerHandler(QueueHandler):
     def __init__(self, handlers):
-        queue = Queue()
-        super().__init__(queue)
+        super().__init__(Queue())
+        self.start_listener(self.queue, handlers)
+
+    def start_listener(self, queue, handlers) -> QueueListener:
         self.listener = QueueListener(queue, *handlers, respect_handler_level=True)
         self.listener.start()
         atexit.register(self.listener.stop)
+        return self.listener
 
 
 def configure_log_listener(
