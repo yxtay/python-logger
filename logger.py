@@ -74,9 +74,9 @@ def _get_stdout_handler(log_level: int = logging.INFO) -> logging.StreamHandler:
 class QueueListenerHandler(QueueHandler):
     def __init__(self, handlers):
         super().__init__(Queue())
-        self.start_listener(self.queue, handlers)
+        self._start_listener(self.queue, handlers)
 
-    def start_listener(self, queue, handlers) -> QueueListener:
+    def _start_listener(self, queue, handlers) -> QueueListener:
         self.listener = QueueListener(queue, *handlers, respect_handler_level=True)
         self.listener.start()
         atexit.register(self.listener.stop)
