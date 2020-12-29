@@ -98,7 +98,6 @@ def configure_log_listener(
     try:
         atexit.unregister(log_qlistener.stop)
         log_qlistener.stop()
-        atexit.unregister(log_qlistener.stop)
     except (AttributeError, NameError):
         pass
 
